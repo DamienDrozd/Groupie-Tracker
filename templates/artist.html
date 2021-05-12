@@ -1,0 +1,51 @@
+{{define "artist"}}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width-device-width, initial-scale-1">
+        <title>Festify</title>
+        <link rel="stylesheet" href="../css/bootstrap.css"> <!-- Bootstrap -->
+    </head>
+    <body>
+        <script src="../js/bootstrap.js"></script>
+        <script src="../js/jquery.js"></script>
+        <div>
+            {{.Name}}
+            <div>
+                <img src={{.Image}}>
+            </div>
+            <div>
+                Membres du groupe:  
+                {{range .Members}}
+                    {{.}}
+                {{end}}
+            </div>
+            <div>
+                Date de création du groupe: 
+                {{.CreationDate}}
+            </div>
+            <div>
+                Premier Album du groupe: 
+                {{.FirstAlbum}}
+            </div>
+            <div>
+                Concerts du groupe: 
+                {{range .RelationsTab}}
+                    <div>
+                        {{range .}}
+                            {{.}}
+                            /
+                        {{end}}
+                        
+                    </div>
+                {{end}}
+            </div>
+        </div>
+
+
+    </body>
+</html>
+
+
+{{end}}

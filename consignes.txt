@@ -1,0 +1,22 @@
+Groupie tracker:
+Serveur full go
+
+Front:Htlm, js et css
+
+Framework css:
+Tailwind
+
+Recupérer les informations d'artistes
+Filtres pour rechercher un artiste
+Bare de recherche pour recherche avancé.
+Wiki, liste des concerts, Date de création du groupe, Discographie
+Liste des concerts dans une ville(+map)
+
+
+
+
+Différentes parties:
+Frontend avec un framework (clément)
+Création du serveur go (comme ascii-art-web) (Sacha)
+page de recherche d'un artiste avec filtres et la liste des artistes (travail api + récupération des données avec le serveur go)
+Descriptif de l'artiste (Gestion d'api uniquement)
