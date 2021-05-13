@@ -91,15 +91,10 @@
             </body>
             <!-- input/search -->
             
-                <input onsubmit="event.preventDefault();" name="search" class="design-search" id="search" type="text" list="searchs" placeholder="Rechercher..." autofocus required />
+                <input onsubmit="event.preventDefault();" name="search" class="design-search" id="search" type="text" list="searchs" placeholder="Rechercher..." autofocus  />
                   <datalist id="searchs" name="searchs">
-                    
                     {{range .Tabsearchbar}}
-                      
-    
-                      
                         <option value={{.}}>
-                      
                     {{end}}
 
                   </datalist>
