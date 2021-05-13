@@ -97,10 +97,9 @@
                     {{range .Tabsearchbar}}
                       
     
-                      {{$ID := .Id}}
-                      {{range .Search}}
-                        <option data-id={{$ID}} value={{.}}>
-                      {{end}}
+                      
+                        <option value={{.}}>
+                      
                     {{end}}
 
                   </datalist>

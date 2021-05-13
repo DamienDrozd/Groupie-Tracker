@@ -50,7 +50,7 @@ type Output struct {
 	Tabcreationdate []string
 	Tabfirstalbum   []string
 	Tablocations    []string
-	Tabsearchbar    []Tab
+	Tabsearchbar    []string
 
 	// Test string
 }
@@ -60,6 +60,7 @@ var run = false
 func search(w http.ResponseWriter, r *http.Request) {
 
 	//--------------------------------------SearchBar--------------------------------
+	timestart := time.Now()
 
 	var result Group
 
@@ -74,7 +75,6 @@ func search(w http.ResponseWriter, r *http.Request) {
 
 		}
 	}
-	fmt.Println(SearchBar)
 
 	SearchBar = strings.ToLower(SearchBar)
 	SearchBar = strings.Title(SearchBar)
@@ -89,7 +89,8 @@ func search(w http.ResponseWriter, r *http.Request) {
 	result.Locations = append(result.Members, SearchBar)
 
 	var resultTab = make([]string, 0)
-	resultgroup := findgroup(result)
+
+	resultgroup := findgroup(result) // -----------------------------------A optimiser------------------------
 
 	for i := range resultgroup["ResultName"] {
 		resultTab = append(resultTab, resultgroup["ResultName"][i])
@@ -123,8 +124,11 @@ func search(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.FormValue("Locations") != "" {
 		tabtest.Locations = append(result.Locations, r.FormValue("Locations"))
+
 	}
+
 	tab1 := findgroup(tabtest)
+
 	resultTab = compareTab(resultTab, tab1["ResultMembers"])
 	resultTab = compareTab(resultTab, tab1["ResultCreationDate"])
 	resultTab = compareTab(resultTab, tab1["ResultFirstAlbum"])
@@ -137,17 +141,11 @@ func search(w http.ResponseWriter, r *http.Request) {
 	var tabcreationdate []string
 	var tabfirstalbum []string
 	var tablocations []string
-	var tabsearchbar []Tab
+	var tabsearchbar []string
 
 	listGroup := listof()
 
-	searchbar := searchbar(listGroup)
-
-	for i := range searchbar {
-		tabsearchbar = append(tabsearchbar, Tab{})
-		tabsearchbar[i].Id = fmt.Sprintf("%v", i+1)
-		tabsearchbar[i].Search = searchbar[i]
-	}
+	tabsearchbar = searchbar(listGroup)
 
 	for i := range listGroup {
 		tab = append(tab, Tab{})
@@ -168,6 +166,11 @@ func search(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
+	tabsearchbar = tritab(tabsearchbar, false)
+	tablocations = tritab(tablocations, true)
+	tabcreationdate = tritab(tabcreationdate, false)
+	tabfirstalbum = tritab(tabfirstalbum, true)
+	tabmembers = tritab(tabmembers, false)
 
 	displaytab := resultTab
 	if displaytab != nil && run == true && (SearchBar != "" || r.FormValue("Members") != "" || r.FormValue("CreationDate") != "" || r.FormValue("FirstAlbum") != "" || r.FormValue("Locations") != "") {
@@ -177,6 +180,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 		for i := range displaytab {
 			displaytabgroup = append(displaytabgroup, groupof(displaytab[i]))
 		}
+
 		tab = make([]Tab, 0)
 		for i := range displaytabgroup {
 			tab = append(tab, Tab{})
@@ -185,6 +189,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 			tab[i].Image = displaytabgroup[i].Image
 			tab[i].Url = "/artist?artist=" + fmt.Sprintf("%v", displaytabgroup[i].Id)
 		}
+
 	}
 
 	p := Output{
@@ -204,6 +209,11 @@ func search(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Template execution: %s", err) // If the executetemplate function cannot run, displays an error message
 	}
 	run = true
+
+	t := time.Now()
+	fmt.Println("time1:", t.Sub(timestart))
+	timestart = time.Now()
+
 }
 
 func result(w http.ResponseWriter, r *http.Request) {
@@ -228,7 +238,7 @@ func groupe(w http.ResponseWriter, r *http.Request) {
 	log.Println("Url Param 'key' is: " + string(key))
 
 	var test = string(key)
-	fmt.Println(test)
+
 	GroupOutput := groupof(test)
 	// fmt.Println(GroupOutput.Id)
 
@@ -273,10 +283,67 @@ type Group struct {
 	RelationsTab [][]string
 }
 
+func tritab(tab []string, revert bool) []string {
+
+	x := len(tab)
+
+	for i := 0; i < x; i++ {
+		for j := 0; j < x; j++ {
+			if tab[i] < tab[j] {
+				tab[i], tab[j] = tab[j], tab[i]
+			}
+		}
+	}
+
+	for i := 0; i < x; i++ {
+		for j := 0; j < x; j++ {
+			if tab[i] == tab[j] && i != j {
+				// fmt.Println(tab[i], tab[j])
+				tab = append(tab[:i], tab[i+1:]...)
+				j--
+				x--
+
+			}
+
+		}
+	}
+
+	if revert == true {
+		for i := 0; i < len(tab); i++ {
+			for j := 0; j < len(tab); j++ {
+				var mota string
+				var motb string
+				for a := len(tab[i]) - 1; a > 0; a-- {
+					if tab[i][a] == 45 {
+						mota = tab[i][a:]
+						break
+					}
+				}
+				for b := len(tab[j]) - 1; b > 0; b-- {
+					if tab[j][b] == 45 {
+						motb = tab[j][b:]
+						break
+					}
+				}
+
+				if mota < motb {
+					tab[i], tab[j] = tab[j], tab[i]
+				}
+
+			}
+		}
+	}
+
+	return tab
+}
+
 func listof() []Group {
 	var listGroup []Group
 	var tab = readurl("https://groupietrackers.herokuapp.com/api/artists")
+	var loc = readurl("https://groupietrackers.herokuapp.com/api/locations")
+
 	for i := range tab {
+
 		var group Group
 		group.Name = fmt.Sprintf("%v", tab[i]["name"])
 		group.Image = fmt.Sprintf("%v", tab[i]["image"])
@@ -286,10 +353,14 @@ func listof() []Group {
 		for j := range tab[i]["members"].([]interface{}) {
 			group.Members = append(group.Members, fmt.Sprintf("%v", tab[i]["members"].([]interface{})[j]))
 		}
-		locations := readurl(fmt.Sprintf("%v", tab[i]["locations"]))
-		for j := range locations[0]["locations"].([]interface{}) {
-			group.Locations = append(group.Locations, fmt.Sprintf("%v", locations[0]["locations"].([]interface{})[j]))
+
+		// locations := readurl(fmt.Sprintf("%v", tab[i]["locations"])) //--------------A optimiser-----------------
+
+		for j := range loc[i]["locations"].([]interface{}) {
+			group.Locations = append(group.Locations, fmt.Sprintf("%v", loc[i]["locations"].([]interface{})[j]))
+
 		}
+
 		// dates := readurl(fmt.Sprintf("%v", tab[i]["concertDates"]))
 		// for j := range dates[0]["dates"].([]interface{}) {
 		// 	group.ConcertDates = append(group.ConcertDates, fmt.Sprintf("%v", dates[0]["dates"].([]interface{})[j]))
@@ -299,20 +370,21 @@ func listof() []Group {
 	return listGroup
 }
 
-func searchbar(group []Group) [][]string {
-	var result [][]string
+func searchbar(group []Group) []string {
+	var result []string
 	for i := range group {
-		result = append(result, make([]string, 0))
-		result[i] = append(result[i], group[i].Name+" | Artist - Band")
-		result[i] = append(result[i], group[i].FirstAlbum+" | FirstAlbum")
-		result[i] = append(result[i], fmt.Sprintf("%v", group[i].CreationDate)+" | CreationDate")
+		result = append(result, "")
+		result = append(result, group[i].Name+" | Artist - Band")
+		result = append(result, group[i].FirstAlbum+" | FirstAlbum")
+		result = append(result, fmt.Sprintf("%v", group[i].CreationDate)+" | CreationDate")
 		for j := range group[i].Members {
-			result[i] = append(result[i], group[i].Members[j]+" | Members")
+			result = append(result, group[i].Members[j]+" | Members")
 		}
 		for j := range group[i].Locations {
-			result[i] = append(result[i], group[i].Locations[j]+" | Locations")
+			result = append(result, group[i].Locations[j]+" | Locations")
 		}
 	}
+
 	return result
 }
 
@@ -364,9 +436,10 @@ func findgroup(input Group) map[string][]string {
 	var ResultLocations = make([]string, 0)
 	var ResultConcertDates = make([]string, 0)
 	var ResultRelations = make([]string, 0)
+	var tab = readurl("https://groupietrackers.herokuapp.com/api/artists")
 
 	if input.Name != "" {
-		var tab = readurl("https://groupietrackers.herokuapp.com/api/artists")
+
 		for i := range tab {
 			if tab[i]["name"] == input.Name {
 				ResultName = append(ResultName, fmt.Sprintf("%v", tab[i]["id"]))
@@ -374,7 +447,7 @@ func findgroup(input Group) map[string][]string {
 		}
 	}
 	if input.CreationDate != 0 {
-		var tab = readurl("https://groupietrackers.herokuapp.com/api/artists")
+
 		for i := range tab {
 			if tab[i]["creationDate"] == input.CreationDate {
 				ResultCreationDate = append(ResultCreationDate, fmt.Sprintf("%v", tab[i]["id"]))
@@ -382,7 +455,7 @@ func findgroup(input Group) map[string][]string {
 		}
 	}
 	if input.FirstAlbum != "" {
-		var tab = readurl("https://groupietrackers.herokuapp.com/api/artists")
+
 		for i := range tab {
 			if tab[i]["firstAlbum"] == input.FirstAlbum {
 				ResultFirstAlbum = append(ResultFirstAlbum, fmt.Sprintf("%v", tab[i]["id"]))
@@ -390,7 +463,7 @@ func findgroup(input Group) map[string][]string {
 		}
 	}
 	if input.Members != nil {
-		var tab = readurl("https://groupietrackers.herokuapp.com/api/artists")
+
 		for i := range tab {
 			for k := 0; k < len(tab[i]["members"].([]interface{})); k++ {
 				for j := range input.Members {
