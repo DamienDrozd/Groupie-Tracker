@@ -31,9 +31,16 @@
             </div>
             <div>
                 Concerts du groupe: 
-                {{range .RelationsTab}}
+                {{range .Coordonates}}
                     <div>
-                        {{range .}}
+                        {{.Locations}}
+
+                        {{range .Dates}}
+                            {{.}}
+                            /
+                        {{end}}
+
+                        {{range .Coordonates}}
                             {{.}}
                             /
                         {{end}}

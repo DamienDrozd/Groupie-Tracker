@@ -19,7 +19,6 @@ func main() {
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("templates/js"))))
 	// http.HandleFunc("/", serveur)
 	http.HandleFunc("/search", search)
-	// http.HandleFunc("/result", result)
 	http.HandleFunc("/artist", groupe)
 	http.ListenAndServe(":8080", nil)
 }
@@ -216,12 +215,6 @@ func search(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func result(w http.ResponseWriter, r *http.Request) {
-	var templates *template.Template
-	templates = template.Must(templates.ParseGlob("templates/*.html"))
-	templates.ExecuteTemplate(w, "result.html", nil)
-}
-
 func groupe(w http.ResponseWriter, r *http.Request) {
 
 	keys, ok := r.URL.Query()["artist"]
@@ -280,7 +273,50 @@ type Group struct {
 	Locations    []string
 	ConcertDates []string
 	Relations    map[string][]string
-	RelationsTab [][]string
+	Coordonates  []coordonates
+}
+
+type coordonates struct {
+	Locations   string
+	Coordonates []string
+	Dates       []string
+}
+
+func findco(cityname string) []string {
+	cityname = strings.ReplaceAll(cityname, "_", " ")
+
+	url := "https://us1.locationiq.com/v1/search.php?key=pk.2408fa8d4a5d6998c095b3987d39384f&q=" + cityname + "&format=json"
+	location := readurl(url)
+
+	var city map[string]interface{}
+	city = location[0]
+	for i := range location {
+		if location[i] != nil {
+			if city["importance"] == nil || location[i]["importance"].(float64) > city["importance"].(float64) {
+				city = location[i]
+			}
+		}
+	}
+	// fmt.Println(cityname, city["display_name"], city["boundingbox"])
+
+	co := city["boundingbox"]
+	tab := make([]string, 0)
+	if co != nil {
+
+		str := fmt.Sprintf("%v", co)
+		var x = 0
+		tab = append(tab, "")
+		for i := 1; i < len(str)-1; i++ {
+			if str[i] != 32 {
+				tab[x] += string(str[i])
+			} else {
+				x++
+				tab = append(tab, "")
+			}
+		}
+	}
+
+	return tab
 }
 
 func tritab(tab []string, revert bool) []string {
@@ -405,7 +441,10 @@ func groupof(input string) Group {
 			}
 			locations := readurl(fmt.Sprintf("%v", tab[i]["locations"]))
 			for j := range locations[0]["locations"].([]interface{}) {
-				group.Locations = append(group.Locations, fmt.Sprintf("%v", locations[0]["locations"].([]interface{})[j]))
+				mot := fmt.Sprintf("%v", locations[0]["locations"].([]interface{})[j])
+				mot = strings.ReplaceAll(mot, "_", " ")
+
+				group.Locations = append(group.Locations, mot)
 			}
 			dates := readurl(fmt.Sprintf("%v", tab[i]["concertDates"]))
 			for j := range dates[0]["dates"].([]interface{}) {
@@ -413,14 +452,19 @@ func groupof(input string) Group {
 			}
 			tabconvert := readurl(fmt.Sprintf("%v", tab[i]["relations"]))
 			group.Relations = makerelations(tabconvert)
-			var x = 0
+
 			for j := range group.Relations {
-				group.RelationsTab = append(group.RelationsTab, make([]string, 0))
-				group.RelationsTab[x] = append(group.RelationsTab[x], j)
+				var coo coordonates
+				coo.Locations = j
+				coo.Coordonates = findco(j)
+
+				// group.Coordonates = append(group.RelationsTab, make([]string, 0))
+				// group.RelationsTab[x] = append(group.RelationsTab[x], j)
 				for k := range group.Relations[j] {
-					group.RelationsTab[x] = append(group.RelationsTab[x], group.Relations[j][k])
+					coo.Dates = append(coo.Dates, group.Relations[j][k])
 				}
-				x++
+				fmt.Println(coo)
+				group.Coordonates = append(group.Coordonates, coo)
 			}
 		}
 	}
