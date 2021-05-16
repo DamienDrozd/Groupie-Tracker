@@ -1,0 +1,33 @@
+{{define "location"}}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width-device-width, initial-scale-1">
+        <title>Festify</title>
+    </head>
+    <body>
+        <script src="../js/bootstrap.js"></script>
+        <script src="../js/jquery.js"></script>
+        <div>
+            
+            <div>
+                
+                {{range .Tabpays}}
+                    <div>
+                    {{.Pays}}
+                    {{.Ville}}
+                    {{range .Groupes}}
+                        {{.}}
+                    {{end}}
+                    </div>
+                {{end}}
+            </div>
+            
+
+
+    </body>
+</html>
+
+
+{{end}}

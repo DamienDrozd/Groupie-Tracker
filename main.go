@@ -20,13 +20,47 @@ func main() {
 	// http.HandleFunc("/", serveur)
 	http.HandleFunc("/search", search)
 	http.HandleFunc("/artist", groupe)
+	http.HandleFunc("/location", SearchLocation)
 	http.ListenAndServe(":8080", nil)
 }
 
-func serveur(w http.ResponseWriter, r *http.Request) {
-	var templates *template.Template
-	templates = template.Must(templates.ParseGlob("templates/*.html"))
-	templates.ExecuteTemplate(w, "index.html", nil)
+type pays struct {
+	Pays    string
+	Ville   string
+	Groupes []float64
+}
+
+func SearchLocation(w http.ResponseWriter, r *http.Request) {
+
+	maplocation := listLocation()
+
+	var tabpays []pays
+
+	for i := range maplocation {
+		for j := range maplocation[i] {
+			var newpays pays
+			// fmt.Println(i,j,maplocation[i][j])
+
+			newpays.Pays = i
+			newpays.Ville = j
+			newpays.Groupes = maplocation[i][j]
+			tabpays = append(tabpays, newpays)
+		}
+	}
+
+	p := struct {
+		Tabpays []pays
+	}{
+		Tabpays: tabpays,
+	}
+
+	templates := template.New("Label de ma template")
+	templates = template.Must(templates.ParseFiles("./templates/searchLocation.html"))
+	err := templates.ExecuteTemplate(w, "location", p)
+
+	if err != nil {
+		log.Fatalf("Template execution: %s", err) // If the executetemplate function cannot run, displays an error message
+	}
 }
 
 type Tab struct {
@@ -233,6 +267,16 @@ func groupe(w http.ResponseWriter, r *http.Request) {
 	var test = string(key)
 
 	GroupOutput := groupof(test)
+
+	for i := range GroupOutput.Coordonates {
+		fmt.Println(GroupOutput.Coordonates[i])
+
+	}
+	for i := range GroupOutput.printco {
+		fmt.Println(GroupOutput.printco[i])
+
+	}
+
 	// fmt.Println(GroupOutput.Id)
 
 	p := GroupOutput
@@ -274,12 +318,88 @@ type Group struct {
 	ConcertDates []string
 	Relations    map[string][]string
 	Coordonates  []coordonates
+	printco      []string
 }
 
 type coordonates struct {
 	Locations   string
 	Coordonates []string
 	Dates       []string
+}
+
+func listLocation() map[string]map[string][]float64 {
+	var loc = readurl("https://groupietrackers.herokuapp.com/api/locations")
+	var tab = make(map[string][]float64)
+	var tabcity []string
+
+	// fmt.Println(loc)
+
+	for i := range loc {
+
+		for j := range loc[i]["locations"].([]interface{}) {
+			tabcity = append(tabcity, fmt.Sprintf("%v", loc[i]["locations"].([]interface{})[j]))
+
+		}
+
+		for j := range tabcity {
+			tab[tabcity[j]] = append(tab[tabcity[j]], loc[i]["id"].(float64))
+
+		}
+		tabcity = make([]string, 0)
+
+	}
+	// fmt.Println(tab)
+
+	var tabfinal = make(map[string]map[string][]float64)
+
+	tabtest := make(map[string][]float64)
+
+	for i := range tab {
+
+		indice := 1
+		indice1 := ""
+		indice2 := ""
+		for j := range i {
+
+			if indice == 2 {
+				indice2 += string(i[j])
+			}
+
+			if i[j] == 45 {
+				indice++
+			}
+
+			if indice == 1 {
+				indice1 += string(i[j])
+			}
+		}
+
+		// if ville != indice2 {
+		// 	tabtest = make(map[string][]float64)
+		// }
+
+		// fmt.Println(pays, indice2)
+
+		tabtest[indice1] = tab[i]
+
+		tabfinal[indice2] = merge(tabfinal[indice2], tabtest)
+		tabtest = make(map[string][]float64)
+	}
+
+	return tabfinal
+
+}
+
+func merge(ms ...map[string][]float64) map[string][]float64 {
+	res := map[string][]float64{}
+	for _, m := range ms {
+		for k, v := range m {
+			for i := range v {
+				res[k] = append(res[k], v[i])
+			}
+		}
+	}
+	return res
 }
 
 func findco(cityname string) []string {
@@ -299,21 +419,15 @@ func findco(cityname string) []string {
 	}
 	// fmt.Println(cityname, city["display_name"], city["boundingbox"])
 
-	co := city["boundingbox"]
-	tab := make([]string, 0)
-	if co != nil {
+	lat := city["lat"]
+	lon := city["lon"]
 
-		str := fmt.Sprintf("%v", co)
-		var x = 0
-		tab = append(tab, "")
-		for i := 1; i < len(str)-1; i++ {
-			if str[i] != 32 {
-				tab[x] += string(str[i])
-			} else {
-				x++
-				tab = append(tab, "")
-			}
-		}
+	tab := make([]string, 0)
+
+	if lat != nil && lon != nil {
+
+		tab = append(tab, fmt.Sprintf("%v", lat))
+		tab = append(tab, fmt.Sprintf("%v", lon))
 	}
 
 	return tab
@@ -463,7 +577,7 @@ func groupof(input string) Group {
 				for k := range group.Relations[j] {
 					coo.Dates = append(coo.Dates, group.Relations[j][k])
 				}
-				fmt.Println(coo)
+
 				group.Coordonates = append(group.Coordonates, coo)
 			}
 		}
