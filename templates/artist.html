@@ -17,11 +17,40 @@
                 var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
                 vars[key] = value;
                 });
-                var lon = Math.round(parseInt(vars.lon));
-                var lat = Math.round(parseInt(vars.lat));
+                var lon = parseInt(vars.lon);
+                var lat = parseInt(vars.lat);
 
-                console.log(lat)
-                console.log(lon)
+                
+
+                if (lat == NaN || lon == NaN||(lon == 0 || lat == 0)) {
+                    lat = ""
+                    lon = ""
+                    var stringco = document.getElementById("Coordonates").value
+
+                	var x = 0
+
+                    console.log(stringco, stringco.length)
+
+                    for (var i = 1; i < stringco.length-1; i++) {
+                        if (stringco[i] == " ") {
+
+                            x++
+                        } else {
+                            if (x == 0){
+                                lon += stringco[i]
+                            }else{
+                                lat += stringco[i]
+                            }
+                        }
+                        
+                    }
+                    
+                }
+
+                
+
+                
+
 
                 
 

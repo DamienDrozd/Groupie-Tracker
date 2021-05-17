@@ -185,7 +185,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 
 		tab[i].Name = listGroup[i].Name
 		tab[i].Image = listGroup[i].Image
-		tab[i].Url = "/artist?artist=" + fmt.Sprintf("%v", i+1)
+		tab[i].Url = "/artist?artist=" + fmt.Sprintf("%v", i+1)+ "&lat=0&lon=0" 
 
 		tabcreationdate = append(tabcreationdate, fmt.Sprintf("%v", listGroup[i].CreationDate))
 		tabfirstalbum = append(tabfirstalbum, fmt.Sprintf("%v", listGroup[i].FirstAlbum))
@@ -220,7 +220,8 @@ func search(w http.ResponseWriter, r *http.Request) {
 
 			tab[i].Name = displaytabgroup[i].Name
 			tab[i].Image = displaytabgroup[i].Image
-			tab[i].Url = "/artist?artist=" + fmt.Sprintf("%v", displaytabgroup[i].Id)
+			tab[i].Url = "/artist?artist=" + fmt.Sprintf("%v", displaytabgroup[i].Id)+ "&lat=0&lon=0" 
+			
 		}
 
 	}
@@ -264,7 +265,7 @@ func groupe(w http.ResponseWriter, r *http.Request) {
 	// we only want the single item.
 	key := keys[0]
 
-	log.Println("Url Param 'key' is: " + string(key))
+	
 
 	GroupOutput := groupof(string(key))
 
@@ -287,11 +288,11 @@ func groupe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(GroupOutput.PrintCo) == 2 {
-		fmt.Println(GroupOutput.PrintCo)
-		url := "http://localhost:8080/artist?artist=" + string(key) + "&lat=" + GroupOutput.PrintCo[0] + "&lon=" + GroupOutput.PrintCo[1]
+		
+		url := "http://localhost:8080/artist?artist=" + string(key) + "&lat=" + GroupOutput.PrintCo[1] + "&lon=" + GroupOutput.PrintCo[0]
 		http.Redirect(w, r, url, http.StatusSeeOther)
 
-	}
+	} 
 
 	p := GroupOutput
 
@@ -302,6 +303,14 @@ func groupe(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("Template execution: %s", err) // If the executetemplate function cannot run, displays an error message
 	}
+	log.Println("Url Param 'key' is: " + string(key))
+
+	for i:= range(GroupOutput.Coordonates){
+		fmt.Println(GroupOutput.Coordonates[i].Coordonates ,GroupOutput.Coordonates[i].Locations )
+	}
+
+
+	fmt.Println(GroupOutput.PrintCo)
 }
 
 //----------------------------------------------------------------
