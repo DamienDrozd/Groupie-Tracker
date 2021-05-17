@@ -11,32 +11,22 @@
         <!-- Bing Maps -->
         <script type='text/javascript'>
             function GetMap() {
-                var saisie =document.getElementById("Coordonates").value;
-                var tab = ["",""]
-                var x = 0
+                
+                    var vars = {};
+
+                var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+                vars[key] = value;
+                });
+                var lon = Math.round(parseInt(vars.lon));
+                var lat = Math.round(parseInt(vars.lat));
+
+                console.log(lat)
+                console.log(lon)
 
                 
-                
-                for (var i = 1; i< saisie.length-1 ; i++){
-                    if (saisie[i] == " "){
-                        x++
-                        i++
-                    }
-                    tab[x]+= saisie[i]
-                }
 
-                for (var i = 0; i< tab.length ; i++){
-                    
-                    tab[i] = parseFloat(tab[i].replace(",", "."));
-
-                }
-
-                //alert("tab:"+tab);
-                
-                
-            
                 var map = new Microsoft.Maps.Map('#myMap',{
-                    center: new Microsoft.Maps.Location(tab[0], tab[1])
+                    center: new Microsoft.Maps.Location(lon, lat)
                 });
                 
                 var center = map.getCenter();
@@ -72,10 +62,11 @@
         </nav>
 
         <div>
+            
             <div>
                 {{.Name}}
                 <div>
-                    <img src={{.Image}}>
+                    <img src={{.Image}} name="Co" id="Co" value={{.PrintCo}}>
                 </div>
             </div>
 
@@ -110,8 +101,16 @@
                         
                     </div>
                     {{end}}
-                    <div id="myMap" style="position:relative;width:800px;height:500px;"></div>
+
+                    
                 </form>
+
+
+                    
+                    
+                    <div id="myMap" style="position:relative;width:800px;height:500px;"></div>
+                
+                    
 
                 
             </div>

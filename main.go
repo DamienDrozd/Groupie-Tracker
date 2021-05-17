@@ -251,6 +251,8 @@ func search(w http.ResponseWriter, r *http.Request) {
 
 func groupe(w http.ResponseWriter, r *http.Request) {
 
+	stringco := r.FormValue("Coordonates")
+
 	keys, ok := r.URL.Query()["artist"]
 
 	if !ok || len(keys[0]) < 1 {
@@ -264,20 +266,32 @@ func groupe(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Url Param 'key' is: " + string(key))
 
-	var test = string(key)
+	GroupOutput := groupof(string(key))
 
-	GroupOutput := groupof(test)
+	x := 0
 
-	for i := range GroupOutput.Coordonates {
-		fmt.Println(GroupOutput.Coordonates[i])
+	GroupOutput.PrintCo = append(GroupOutput.PrintCo, "")
+
+	for i := 1; i < len(stringco)-1; i++ {
+
+		if stringco[i] == 32 {
+
+			x++
+
+			GroupOutput.PrintCo = append(GroupOutput.PrintCo, "")
+
+		} else {
+			GroupOutput.PrintCo[x] += string(stringco[i])
+
+		}
+	}
+
+	if len(GroupOutput.PrintCo) == 2 {
+		fmt.Println(GroupOutput.PrintCo)
+		url := "http://localhost:8080/artist?artist=" + string(key) + "&lat=" + GroupOutput.PrintCo[0] + "&lon=" + GroupOutput.PrintCo[1]
+		http.Redirect(w, r, url, http.StatusSeeOther)
 
 	}
-	for i := range GroupOutput.printco {
-		fmt.Println(GroupOutput.printco[i])
-
-	}
-
-	// fmt.Println(GroupOutput.Id)
 
 	p := GroupOutput
 
@@ -318,7 +332,7 @@ type Group struct {
 	ConcertDates []string
 	Relations    map[string][]string
 	Coordonates  []coordonates
-	printco      []string
+	PrintCo      []string
 }
 
 type coordonates struct {
@@ -565,21 +579,22 @@ func groupof(input string) Group {
 				group.ConcertDates = append(group.ConcertDates, fmt.Sprintf("%v", dates[0]["dates"].([]interface{})[j]))
 			}
 			tabconvert := readurl(fmt.Sprintf("%v", tab[i]["relations"]))
-			group.Relations = makerelations(tabconvert)
 
-			for j := range group.Relations {
+			tabrelation := makerelations(tabconvert)
+
+			for j := range tabrelation {
+
 				var coo coordonates
-				coo.Locations = j
-				coo.Coordonates = findco(j)
+				coo.Locations = tabrelation[j][0]
+				coo.Coordonates = findco(tabrelation[j][0])
 
-				// group.Coordonates = append(group.RelationsTab, make([]string, 0))
-				// group.RelationsTab[x] = append(group.RelationsTab[x], j)
-				for k := range group.Relations[j] {
-					coo.Dates = append(coo.Dates, group.Relations[j][k])
+				for k := 1; k < len(tabrelation[j]); k++ {
+					coo.Dates = append(coo.Dates, tabrelation[j][k])
 				}
 
 				group.Coordonates = append(group.Coordonates, coo)
 			}
+
 		}
 	}
 	return group
@@ -677,21 +692,21 @@ func findgroup(input Group) map[string][]string {
 			}
 			tab = append(tab, mapString)
 		}
-		notes := makerelations(tabconvert)
-		for x := range tab {
-			for i := range input.Locations {
-				for j := range input.ConcertDates {
-					if notes[input.Locations[i]] != nil {
-						for k := range notes[input.Locations[i]] {
-							// fmt.Println(notes[input.Locations[i]][k], input.ConcertDates[j][1:])
-							if notes[input.Locations[i]][k] == input.ConcertDates[j][1:] {
-								ResultRelations = append(ResultRelations, tab[x]["id"])
-							}
-						}
-					}
-				}
-			}
-		}
+		// notes := makerelations(tabconvert)
+		// for x := range tab {
+		// 	for i := range input.Locations {
+		// 		for j := range input.ConcertDates {
+		// 			if notes[input.Locations[i]] != nil {
+		// 				for k := range notes[input.Locations[i]] {
+		// 					// fmt.Println(notes[input.Locations[i]][k], input.ConcertDates[j][1:])
+		// 					if notes[input.Locations[i]][k] == input.ConcertDates[j][1:] {
+		// 						ResultRelations = append(ResultRelations, tab[x]["id"])
+		// 					}
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 	}
 	var result = make(map[string][]string, 0)
@@ -706,9 +721,9 @@ func findgroup(input Group) map[string][]string {
 
 }
 
-func makerelations(tabconvert []map[string]interface{}) map[string][]string {
+func makerelations(tabconvert []map[string]interface{}) [][]string {
 	tab := make([]map[string]string, 0)
-	var notes = make(map[string][]string)
+	var notes = make([][]string, 0)
 	for i := range tabconvert {
 		mapInterface := make(map[string]interface{})
 		mapString := make(map[string]string)
@@ -752,7 +767,14 @@ func makerelations(tabconvert []map[string]interface{}) map[string][]string {
 					}
 
 				}
-				notes[key[1:]] = array
+				var tabstring []string
+				tabstring = append(tabstring, key[1:])
+
+				for i := 0; i < len(array); i++ {
+					tabstring = append(tabstring, array[i])
+				}
+				notes = append(notes, tabstring)
+
 				// fmt.Println(key)
 				mot = ""
 				key = ""
