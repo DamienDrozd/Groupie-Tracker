@@ -18,10 +18,50 @@ func main() {
 	http.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir("templates/img"))))
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("templates/js"))))
 	// http.HandleFunc("/", serveur)
+	http.HandleFunc("/worldmap", worldmap)
 	http.HandleFunc("/search", search)
 	http.HandleFunc("/artist", groupe)
 	http.HandleFunc("/location", SearchLocation)
 	http.ListenAndServe(":8080", nil)
+}
+
+func worldmap(w http.ResponseWriter, r *http.Request) {
+    templates := template.New("Label de ma template")
+
+
+	keys, _ := r.URL.Query()["continent"]
+	 
+	continent := ""
+    
+	if len(keys) != 0{
+		continent = keys[0]
+	} 
+
+
+	if continent == "na"{
+		templates = template.Must(templates.ParseFiles("./templates/continents/na.html"))
+	}else if continent == "oceania"{
+		templates = template.Must(templates.ParseFiles("./templates/continents/oceania.html"))
+	}else if continent == "sa"{
+		templates = template.Must(templates.ParseFiles("./templates/continents/sa.html"))
+	}else if continent == "africa"{
+		templates = template.Must(templates.ParseFiles("./templates/continents/africa.html"))
+	}else if continent == "asia"{
+		templates = template.Must(templates.ParseFiles("./templates/continents/asia.html"))
+	}else if continent == "europe"{
+		templates = template.Must(templates.ParseFiles("./templates/continents/europe.html"))
+	} else {
+		templates = template.Must(templates.ParseFiles("./templates/world-html.html"))
+
+	}
+
+
+
+	err := templates.ExecuteTemplate(w, "worldmap", nil)
+
+	if err != nil {
+		log.Fatalf("Template execution: %s", err) // If the executetemplate function cannot run, displays an error message
+	}
 }
 
 type pays struct {
