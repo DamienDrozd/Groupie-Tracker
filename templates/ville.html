@@ -40,17 +40,45 @@
     </div>
   </nav>
 
-  <form method="POST" >
-    {{range .Tabpays}}
-      <div>
-        <button id="Ville" type="submit" name="Ville"   value={{.Ville}} href="">{{.Ville}}</button>
-      </div>
-    {{end}}
-  </form>
   
-</body>
-</html>
-{{end}}
+    <!-- Team Section -->
+    <div class="py-5 team3">
+        <div class="container">
+        <div class="row justify-content-center mb-4">
+        <div class="row">
+            
 
+            
+            {{range .Tab}}
+            <div class="col-lg-4 mb-4">
+                <div class="row">
+                
+                <div class="col-md-12 pro-pic">
+                    <a>
+                    <form method="POST" action={{.Url}}>
+                        <input id="Image" type="Image" name="Image" value="test" src={{.Image}}>
+                    </form>
+                    <!-- <img src= > -->
+                    </a>
+                </div>
+                
+                <div class="col-md-12">
+                    <div class="pt-2">
+                    <h5 class="mt-4 font-weight-medium mb-0">{{.Name}}</h5>
+                    </div>
+                </div>
+                
+                </div>
+            </div>
+            {{end}}
+            
+        </div>
+        </div>
+    </div>
+    
+    
+</body>
+
+{{end}}
 
 

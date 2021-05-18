@@ -61,12 +61,13 @@ func findcity(stringpays string) []pays {
 }
 
 func worldmap(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.FormValue("Pays"))
+	stringville := r.FormValue("Ville")
 
 	stringpays := r.FormValue("Image")
 
 	p := struct {
 		Tabpays []pays
+		Tab     []Tab
 	}{}
 
 	templates := template.New("Label de ma template")
@@ -79,7 +80,35 @@ func worldmap(w http.ResponseWriter, r *http.Request) {
 		continent = keys[0]
 	}
 
-	if stringpays != "" {
+	if stringville != "" {
+
+		templates = template.Must(templates.ParseFiles("./templates/ville.html"))
+		var group Group
+		stringville = strings.ToLower(stringville)
+
+		group.Locations = append(group.Locations, stringville)
+
+		test := findgroup(group)
+
+		var tab []Tab
+		var x = 0
+
+		for i := range test {
+			for j := range test[i] {
+				listgroup := groupof(test[i][j])
+				tab = append(tab, Tab{})
+
+				tab[x].Name = listgroup.Name
+				tab[x].Image = listgroup.Image
+				tab[x].Url = "/artist?artist=" + fmt.Sprintf("%v", x+1) + "&lat=0&lon=0"
+				x++
+
+			}
+		}
+
+		p.Tab = tab
+
+	} else if stringpays != "" {
 		p.Tabpays = findcity(stringpays)
 		templates = template.Must(templates.ParseFiles("./templates/pays.html"))
 	} else if continent == "na" {
@@ -195,7 +224,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 	result.CreationDate, _ = strconv.ParseFloat(SearchBar, 64)
 	result.FirstAlbum = SearchBar
 	SearchBar = strings.ToLower(SearchBar)
-	result.Locations = append(result.Members, SearchBar)
+	result.Locations = append(result.Locations, SearchBar)
 
 	var resultTab = make([]string, 0)
 
@@ -738,9 +767,23 @@ func findgroup(input Group) map[string][]string {
 			arr := tab[i]["locations"].([]interface{})
 			for k := 0; k < len(arr); k++ {
 				for j := range input.Locations {
+
 					if input.Locations[j] == arr[k] {
 						ResultLocations = append(ResultLocations, fmt.Sprintf("%v", tab[i]["id"]))
 					}
+
+					ville := ""
+
+					for l := range arr[k].(string) {
+						if arr[k].(string)[l] == 45 {
+							ville = string(arr[k].(string)[:l])
+						}
+					}
+
+					if input.Locations[j] == ville {
+						ResultLocations = append(ResultLocations, fmt.Sprintf("%v", tab[i]["id"]))
+					}
+
 				}
 			}
 		}
