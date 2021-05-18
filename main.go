@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -31,36 +32,8 @@ type pays struct {
 	Groupes []float64
 }
 
-func findcity(stringpays string) []pays {
-
-	maplocation := listLocation()
-
-	var tabpays []pays
-
-	for i := range maplocation {
-		for j := range maplocation[i] {
-			var newpays pays
-			// fmt.Println(i,j,maplocation[i][j])
-
-			newpays.Pays = i
-			newpays.Ville = j
-			newpays.Groupes = maplocation[i][j]
-			tabpays = append(tabpays, newpays)
-		}
-	}
-
-	var tabreturn []pays
-	for i := range tabpays {
-		if tabpays[i].Pays == stringpays {
-			tabreturn = append(tabreturn, tabpays[i])
-		}
-	}
-
-	return tabreturn
-
-}
-
 func worldmap(w http.ResponseWriter, r *http.Request) {
+	timestart := time.Now()
 	stringville := r.FormValue("Ville")
 
 	stringpays := r.FormValue("Image")
@@ -133,9 +106,12 @@ func worldmap(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("Template execution: %s", err) // If the executetemplate function cannot run, displays an error message
 	}
+	t := time.Now()
+	fmt.Println("time1:", t.Sub(timestart))
 }
 
 func SearchLocation(w http.ResponseWriter, r *http.Request) {
+	timestart := time.Now()
 
 	maplocation := listLocation()
 
@@ -166,6 +142,8 @@ func SearchLocation(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("Template execution: %s", err) // If the executetemplate function cannot run, displays an error message
 	}
+	t := time.Now()
+	fmt.Println("time1:", t.Sub(timestart))
 }
 
 type Tab struct {
@@ -356,6 +334,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 }
 
 func groupe(w http.ResponseWriter, r *http.Request) {
+	timestart := time.Now()
 
 	stringco := r.FormValue("Coordonates")
 
@@ -406,13 +385,17 @@ func groupe(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("Template execution: %s", err) // If the executetemplate function cannot run, displays an error message
 	}
+
+	t := time.Now()
+
 	log.Println("Url Param 'key' is: " + string(key))
 
 	for i := range GroupOutput.Coordonates {
 		fmt.Println(GroupOutput.Coordonates[i].Coordonates, GroupOutput.Coordonates[i].Locations)
 	}
 
-	fmt.Println(GroupOutput.PrintCo)
+	fmt.Println("time1:", t.Sub(timestart))
+
 }
 
 //----------------------------------------------------------------
@@ -527,32 +510,54 @@ func merge(ms ...map[string][]float64) map[string][]float64 {
 	return res
 }
 
-func findco(cityname string) []string {
-	cityname = strings.ReplaceAll(cityname, "_", " ")
+func findco(city string) []string {
+	city = strings.ReplaceAll(city, "_", "-")
 
-	url := "https://us1.locationiq.com/v1/search.php?key=pk.2408fa8d4a5d6998c095b3987d39384f&q=" + cityname + "&format=json"
-	location := readurl(url)
+	var cityname string
 
-	var city map[string]interface{}
-	city = location[0]
-	for i := range location {
-		if location[i] != nil {
-			if city["importance"] == nil || location[i]["importance"].(float64) > city["importance"].(float64) {
-				city = location[i]
-			}
+	for i := range city {
+		if city[i] == 45 {
+			cityname = city[:i]
 		}
 	}
-	// fmt.Println(cityname, city["display_name"], city["boundingbox"])
 
-	lat := city["lat"]
-	lon := city["lon"]
+	// url := "https://us1.locationiq.com/v1/search.php?key=pk.2408fa8d4a5d6998c095b3987d39384f&q=" + cityname + "&format=json"
+
+	url := "http://api.positionstack.com/v1/forward?access_key=ed9d86cb4a5c644035c53b78de8de7c9&%20query=" + cityname
+	location := readurl(url)
+
+	// fmt.Println(location[0]["data"])
 
 	tab := make([]string, 0)
 
-	if lat != nil && lon != nil {
+	if location != nil && location[0] != nil && location[0]["data"] != nil && location[0]["data"].([]interface{}) != nil && location[0]["data"].([]interface{})[0] != nil {
 
-		tab = append(tab, fmt.Sprintf("%v", lat))
-		tab = append(tab, fmt.Sprintf("%v", lon))
+		test := location[0]["data"].([]interface{})[0]
+
+		typetest := reflect.TypeOf(test)
+
+		// fmt.Println(typetest)
+
+		// var city map[string]interface{}
+		// city = location[0]
+		// for i := range location {
+		// 	if location[i] != nil {
+		// 		if city["importance"] == nil || location[i]["importance"].(float64) > city["importance"].(float64) {
+		// 			city = location[i]
+		// 		}
+		// 	}
+		// }
+		// // fmt.Println(cityname, city["display_name"], city["boundingbox"])
+
+		if typetest.String() == "map[string]interface {}" {
+
+			lat := test.(map[string]interface{})["latitude"]
+			lon := test.(map[string]interface{})["longitude"]
+
+			tab = append(tab, fmt.Sprintf("%v", lat))
+			tab = append(tab, fmt.Sprintf("%v", lon))
+		}
+
 	}
 
 	return tab
@@ -1071,5 +1076,34 @@ func transformtab(data []byte) []map[string]interface{} {
 	}
 
 	return tabmap
+
+}
+
+func findcity(stringpays string) []pays {
+
+	maplocation := listLocation()
+
+	var tabpays []pays
+
+	for i := range maplocation {
+		for j := range maplocation[i] {
+			var newpays pays
+			// fmt.Println(i,j,maplocation[i][j])
+
+			newpays.Pays = i
+			newpays.Ville = j
+			newpays.Groupes = maplocation[i][j]
+			tabpays = append(tabpays, newpays)
+		}
+	}
+
+	var tabreturn []pays
+	for i := range tabpays {
+		if tabpays[i].Pays == stringpays {
+			tabreturn = append(tabreturn, tabpays[i])
+		}
+	}
+
+	return tabreturn
 
 }
