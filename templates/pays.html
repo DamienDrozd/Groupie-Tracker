@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-  <title>North America - Groupie tracker</title>
+  <title>Mexico - Groupie tracker</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width-device-width, initial-scale-1">
   <title>Festify</title>
@@ -16,6 +16,8 @@
 </head>
 
 <body>
+
+  
   <nav class="navbar navbar-expand-lg navbar-scroll navbar-dark bg-dark opacity">
     <a class="navbar-brand" href="#">Festify</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
@@ -24,57 +26,31 @@
     </button>
     <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
+
+        
+                
+                
+            </div>
         <li class="nav-item active">
           <a class="nav-link" href="#">acceuil <span class="sr-only">(current)</span></a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">recherche</a>
-        </li>
-        <li class="nav-item>">
-          <a class="nav-link" href="/worldmap">Map</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">a propos</a>
-        </li>
+        
+
       </ul>
     </div>
   </nav>
 
-  <h1>Select a country</h1>
-
   <form method="POST" >
-
-    
-                          
-                        
-    <div class="container">
-      <div class="row aalign-items-center">
-        <div class="col text-center">
-          <figure>
-            <img src="../img/countries/usa.png" href="#" width="128" height="128" class="rounded float-none" title="USA">
-            <figcaption>United States</figcaption>
-          </figure>
-        </div>
-        <div class="col text-center">
-          <figure>
-              <button id="Image" type="submit" name="Image"   value="canada" href="">
-                <img src="../img/countries/canada.png"width="128" height="128" >
-              </button>
-            <figcaption>Canada</figcaption>
-          </figure>
-        </div>
-        <div class="col text-center">
-          <figure>
-            <img src="../img/countries/mexico.png" href="#" width="128" height="128" class="rounded float-none"
-              title="Mexico">
-            <figcaption>Mexico</figcaption>
-          </figure>
-        </div>
+    {{range .Tabpays}}
+      <div>
+        <button id="Pays" type="submit" name="Pays"   value={{.Ville}} href="">{{.Ville}}</button>
       </div>
-    </div>
+    {{end}}
   </form>
+  
 </body>
-
 </html>
-
 {{end}}
+
+
+

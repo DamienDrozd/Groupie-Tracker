@@ -25,49 +25,85 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
-func worldmap(w http.ResponseWriter, r *http.Request) {
-    templates := template.New("Label de ma template")
+type pays struct {
+	Pays    string
+	Ville   string
+	Groupes []float64
+}
 
+func findcity(stringpays string) []pays {
+
+	maplocation := listLocation()
+
+	var tabpays []pays
+
+	for i := range maplocation {
+		for j := range maplocation[i] {
+			var newpays pays
+			// fmt.Println(i,j,maplocation[i][j])
+
+			newpays.Pays = i
+			newpays.Ville = j
+			newpays.Groupes = maplocation[i][j]
+			tabpays = append(tabpays, newpays)
+		}
+	}
+
+	var tabreturn []pays
+	for i := range tabpays {
+		if tabpays[i].Pays == stringpays {
+			tabreturn = append(tabreturn, tabpays[i])
+		}
+	}
+
+	return tabreturn
+
+}
+
+func worldmap(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.FormValue("Pays"))
+
+	stringpays := r.FormValue("Image")
+
+	p := struct {
+		Tabpays []pays
+	}{}
+
+	templates := template.New("Label de ma template")
 
 	keys, _ := r.URL.Query()["continent"]
-	 
+
 	continent := ""
-    
-	if len(keys) != 0{
+
+	if len(keys) != 0 {
 		continent = keys[0]
-	} 
+	}
 
-
-	if continent == "na"{
+	if stringpays != "" {
+		p.Tabpays = findcity(stringpays)
+		templates = template.Must(templates.ParseFiles("./templates/pays.html"))
+	} else if continent == "na" {
 		templates = template.Must(templates.ParseFiles("./templates/continents/na.html"))
-	}else if continent == "oceania"{
+	} else if continent == "oceania" {
 		templates = template.Must(templates.ParseFiles("./templates/continents/oceania.html"))
-	}else if continent == "sa"{
+	} else if continent == "sa" {
 		templates = template.Must(templates.ParseFiles("./templates/continents/sa.html"))
-	}else if continent == "africa"{
+	} else if continent == "africa" {
 		templates = template.Must(templates.ParseFiles("./templates/continents/africa.html"))
-	}else if continent == "asia"{
+	} else if continent == "asia" {
 		templates = template.Must(templates.ParseFiles("./templates/continents/asia.html"))
-	}else if continent == "europe"{
+	} else if continent == "europe" {
 		templates = template.Must(templates.ParseFiles("./templates/continents/europe.html"))
 	} else {
 		templates = template.Must(templates.ParseFiles("./templates/world-html.html"))
 
 	}
 
-
-
-	err := templates.ExecuteTemplate(w, "worldmap", nil)
+	err := templates.ExecuteTemplate(w, "worldmap", p)
 
 	if err != nil {
 		log.Fatalf("Template execution: %s", err) // If the executetemplate function cannot run, displays an error message
 	}
-}
-
-type pays struct {
-	Pays    string
-	Ville   string
-	Groupes []float64
 }
 
 func SearchLocation(w http.ResponseWriter, r *http.Request) {
@@ -225,7 +261,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 
 		tab[i].Name = listGroup[i].Name
 		tab[i].Image = listGroup[i].Image
-		tab[i].Url = "/artist?artist=" + fmt.Sprintf("%v", i+1)+ "&lat=0&lon=0" 
+		tab[i].Url = "/artist?artist=" + fmt.Sprintf("%v", i+1) + "&lat=0&lon=0"
 
 		tabcreationdate = append(tabcreationdate, fmt.Sprintf("%v", listGroup[i].CreationDate))
 		tabfirstalbum = append(tabfirstalbum, fmt.Sprintf("%v", listGroup[i].FirstAlbum))
@@ -260,8 +296,8 @@ func search(w http.ResponseWriter, r *http.Request) {
 
 			tab[i].Name = displaytabgroup[i].Name
 			tab[i].Image = displaytabgroup[i].Image
-			tab[i].Url = "/artist?artist=" + fmt.Sprintf("%v", displaytabgroup[i].Id)+ "&lat=0&lon=0" 
-			
+			tab[i].Url = "/artist?artist=" + fmt.Sprintf("%v", displaytabgroup[i].Id) + "&lat=0&lon=0"
+
 		}
 
 	}
@@ -305,8 +341,6 @@ func groupe(w http.ResponseWriter, r *http.Request) {
 	// we only want the single item.
 	key := keys[0]
 
-	
-
 	GroupOutput := groupof(string(key))
 
 	x := 0
@@ -328,11 +362,11 @@ func groupe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(GroupOutput.PrintCo) == 2 {
-		
+
 		url := "http://localhost:8080/artist?artist=" + string(key) + "&lat=" + GroupOutput.PrintCo[1] + "&lon=" + GroupOutput.PrintCo[0]
 		http.Redirect(w, r, url, http.StatusSeeOther)
 
-	} 
+	}
 
 	p := GroupOutput
 
@@ -345,10 +379,9 @@ func groupe(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("Url Param 'key' is: " + string(key))
 
-	for i:= range(GroupOutput.Coordonates){
-		fmt.Println(GroupOutput.Coordonates[i].Coordonates ,GroupOutput.Coordonates[i].Locations )
+	for i := range GroupOutput.Coordonates {
+		fmt.Println(GroupOutput.Coordonates[i].Coordonates, GroupOutput.Coordonates[i].Locations)
 	}
-
 
 	fmt.Println(GroupOutput.PrintCo)
 }
