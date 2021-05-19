@@ -98,7 +98,7 @@
         </nav>
 
         <div style="position: relative; height: 300px; left: 50px; width: 300px;">
-            <img src="https://groupietrackers.herokuapp.com/api/images/soja.jpeg" alt="wrapkit" class="img-fluid rounded" style="position: relative; top: 50px;"/>
+            <img src={{.Image}} alt="wrapkit" class="img-fluid rounded" style="position: relative; top: 50px;"/>
         </div>
 
         <div style="position: relative; left: 50px; height: 220px; width:1200px;">
@@ -134,7 +134,7 @@
                 </button>
 
                 {{range .Dates}}
-                    {{.}}
+                    {{.}}/
                 {{end}}
                 
             </div>
