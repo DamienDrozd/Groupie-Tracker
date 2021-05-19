@@ -248,7 +248,10 @@ func search(w http.ResponseWriter, r *http.Request) {
 	resultTab = compareTab(resultTab, tab1["ResultMembers"])
 	resultTab = compareTab(resultTab, tab1["ResultCreationDate"])
 	resultTab = compareTab(resultTab, tab1["ResultFirstAlbum"])
+	resultTab = compareTab(resultTab, tab1["ResultLocations"])
 	resultTab = compareTab(resultTab, tab1["resultTab"])
+
+	// fmt.Println(tab1["ResultLocations"])
 
 	// ---------------------------------------------Objet a renvoyer en requête http---------------------------------------------------
 
@@ -792,6 +795,7 @@ func findgroup(input Group) map[string][]string {
 				}
 			}
 		}
+
 	}
 	if input.ConcertDates != nil {
 		var tab = readurl("https://groupietrackers.herokuapp.com/api/dates")
