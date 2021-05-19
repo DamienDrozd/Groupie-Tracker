@@ -73,7 +73,7 @@ func worldmap(w http.ResponseWriter, r *http.Request) {
 
 				tab[x].Name = listgroup.Name
 				tab[x].Image = listgroup.Image
-				tab[x].Url = "/artist?artist=" + fmt.Sprintf("%v", x+1) + "&lat=0&lon=0"
+				tab[x].Url = "/artist?artist=" + fmt.Sprintf("%v", listgroup.Id) + "&lat=0&lon=0"
 				x++
 
 			}
@@ -371,7 +371,7 @@ func groupe(w http.ResponseWriter, r *http.Request) {
 
 	if len(GroupOutput.PrintCo) == 2 {
 
-		url := "http://localhost:8080/artist?artist=" + string(key) + "&lat=" + GroupOutput.PrintCo[1] + "&lon=" + GroupOutput.PrintCo[0]
+		url := "/artist?artist=" + string(key) + "&lat=" + GroupOutput.PrintCo[1] + "&lon=" + GroupOutput.PrintCo[0]
 		http.Redirect(w, r, url, http.StatusSeeOther)
 
 	}
