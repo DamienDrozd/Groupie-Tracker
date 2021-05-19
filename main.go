@@ -18,12 +18,46 @@ func main() {
 	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("templates/css")))) // The server will analyse the static folder to seach thes called files in the html
 	http.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir("templates/img"))))
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("templates/js"))))
+
 	// http.HandleFunc("/", serveur)
+	http.HandleFunc("/about", about)
 	http.HandleFunc("/worldmap", worldmap)
 	http.HandleFunc("/search", search)
 	http.HandleFunc("/artist", groupe)
 	http.HandleFunc("/location", SearchLocation)
+	http.HandleFunc("/home", home)
+	http.HandleFunc("/", home)
 	http.ListenAndServe(":8080", nil)
+}
+
+func home(w http.ResponseWriter, r *http.Request) {
+	timestart := time.Now()
+
+	templates := template.New("Label de ma template")
+	templates = template.Must(templates.ParseFiles("./templates/index.html"))
+	err := templates.ExecuteTemplate(w, "home", nil)
+
+	if err != nil {
+		log.Fatalf("Template execution: %s", err) // If the executetemplate function cannot run, displays an error message
+	}
+	t := time.Now()
+	fmt.Println("time1:", t.Sub(timestart))
+
+}
+
+func about(w http.ResponseWriter, r *http.Request) {
+
+	timestart := time.Now()
+
+	templates := template.New("Label de ma template")
+	templates = template.Must(templates.ParseFiles("./templates/apropos.html"))
+	err := templates.ExecuteTemplate(w, "about", nil)
+
+	if err != nil {
+		log.Fatalf("Template execution: %s", err) // If the executetemplate function cannot run, displays an error message
+	}
+	t := time.Now()
+	fmt.Println("time1:", t.Sub(timestart))
 }
 
 type pays struct {
