@@ -240,7 +240,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 
 	var resultTab = make([]string, 0)
 
-	resultgroup := findgroup(result) // -----------------------------------A optimiser------------------------
+	resultgroup := findgroup(result)
 
 	for i := range resultgroup["ResultName"] {
 		resultTab = append(resultTab, resultgroup["ResultName"][i])
@@ -387,6 +387,8 @@ func groupe(w http.ResponseWriter, r *http.Request) {
 	key := keys[0]
 
 	GroupOutput := groupof(string(key))
+
+	GroupOutput = findcoordonates(GroupOutput)
 
 	x := 0
 
@@ -731,26 +733,36 @@ func groupof(input string) Group {
 			for j := range dates[0]["dates"].([]interface{}) {
 				group.ConcertDates = append(group.ConcertDates, fmt.Sprintf("%v", dates[0]["dates"].([]interface{})[j]))
 			}
-			tabconvert := readurl(fmt.Sprintf("%v", tab[i]["relations"]))
-
-			tabrelation := makerelations(tabconvert)
-
-			for j := range tabrelation {
-
-				var coo coordonates
-				coo.Locations = tabrelation[j][0]
-				coo.Coordonates = findco(tabrelation[j][0])
-
-				for k := 1; k < len(tabrelation[j]); k++ {
-					coo.Dates = append(coo.Dates, tabrelation[j][k])
-				}
-
-				group.Coordonates = append(group.Coordonates, coo)
-			}
 
 		}
 	}
 	return group
+}
+
+func findcoordonates(group Group) Group {
+	var tab = readurl("https://groupietrackers.herokuapp.com/api/artists")
+
+	for i := range tab {
+
+		tabconvert := readurl(fmt.Sprintf("%v", tab[i]["relations"]))
+
+		tabrelation := makerelations(tabconvert)
+
+		for j := range tabrelation {
+
+			var coo coordonates
+			coo.Locations = tabrelation[j][0]
+			coo.Coordonates = findco(tabrelation[j][0])
+
+			for k := 1; k < len(tabrelation[j]); k++ {
+				coo.Dates = append(coo.Dates, tabrelation[j][k])
+			}
+
+			group.Coordonates = append(group.Coordonates, coo)
+		}
+	}
+	return group
+
 }
 
 func findgroup(input Group) map[string][]string {
