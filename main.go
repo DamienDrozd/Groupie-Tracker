@@ -575,19 +575,6 @@ func findco(city string) []string {
 
 		typetest := reflect.TypeOf(test)
 
-		// fmt.Println(typetest)
-
-		// var city map[string]interface{}
-		// city = location[0]
-		// for i := range location {
-		// 	if location[i] != nil {
-		// 		if city["importance"] == nil || location[i]["importance"].(float64) > city["importance"].(float64) {
-		// 			city = location[i]
-		// 		}
-		// 	}
-		// }
-		// // fmt.Println(cityname, city["display_name"], city["boundingbox"])
-
 		if typetest.String() == "map[string]interface {}" {
 
 			lat := test.(map[string]interface{})["latitude"]
@@ -744,21 +731,24 @@ func findcoordonates(group Group) Group {
 
 	for i := range tab {
 
-		tabconvert := readurl(fmt.Sprintf("%v", tab[i]["relations"]))
+		if tab[i]["id"] == group.Id {
 
-		tabrelation := makerelations(tabconvert)
+			tabconvert := readurl(fmt.Sprintf("%v", tab[i]["relations"]))
 
-		for j := range tabrelation {
+			tabrelation := makerelations(tabconvert)
 
-			var coo coordonates
-			coo.Locations = tabrelation[j][0]
-			coo.Coordonates = findco(tabrelation[j][0])
+			for j := range tabrelation {
 
-			for k := 1; k < len(tabrelation[j]); k++ {
-				coo.Dates = append(coo.Dates, tabrelation[j][k])
+				var coo coordonates
+				coo.Locations = tabrelation[j][0]
+				coo.Coordonates = findco(tabrelation[j][0])
+
+				for k := 1; k < len(tabrelation[j]); k++ {
+					coo.Dates = append(coo.Dates, tabrelation[j][k])
+				}
+
+				group.Coordonates = append(group.Coordonates, coo)
 			}
-
-			group.Coordonates = append(group.Coordonates, coo)
 		}
 	}
 	return group
