@@ -19,8 +19,8 @@
                 var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
                 vars[key] = value;
                 });
-                var lon = parseInt(vars.lon);
-                var lat = parseInt(vars.lat);
+                var lon = vars.lon;
+                var lat = vars.lat;
 
                 
 
