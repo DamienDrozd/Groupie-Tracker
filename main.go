@@ -562,27 +562,22 @@ func findco(city string) []string {
 
 	// url := "https://us1.locationiq.com/v1/search.php?key=pk.2408fa8d4a5d6998c095b3987d39384f&q=" + cityname + "&format=json"
 
-	url := "http://api.positionstack.com/v1/forward?access_key=ed9d86cb4a5c644035c53b78de8de7c9&%20query=" + cityname
+	url := "https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyA_NbvH_FKDYQJgc9WbIa3j_PwOLSIEdzE&address=" + cityname
 	location := readurl(url)
-
-	// fmt.Println(location[0]["data"])
 
 	tab := make([]string, 0)
 
-	if location != nil && location[0] != nil && location[0]["data"] != nil && location[0]["data"].([]interface{}) != nil && location[0]["data"].([]interface{})[0] != nil {
+	test := location[0]["results"].([]interface{})[0].(map[string]interface{})["geometry"].(map[string]interface{})["location"]
 
-		test := location[0]["data"].([]interface{})[0]
+	typetest := reflect.TypeOf(test)
 
-		typetest := reflect.TypeOf(test)
+	if typetest.String() == "map[string]interface {}" {
 
-		if typetest.String() == "map[string]interface {}" {
+		lat := test.(map[string]interface{})["lat"]
+		lon := test.(map[string]interface{})["lng"]
 
-			lat := test.(map[string]interface{})["latitude"]
-			lon := test.(map[string]interface{})["longitude"]
-
-			tab = append(tab, fmt.Sprintf("%v", lat))
-			tab = append(tab, fmt.Sprintf("%v", lon))
-		}
+		tab = append(tab, fmt.Sprintf("%v", lat))
+		tab = append(tab, fmt.Sprintf("%v", lon))
 
 	}
 
